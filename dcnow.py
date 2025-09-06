@@ -5,8 +5,8 @@ import os
 import json
 import time
 import logging
-import urllib
-import urllib2
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 import sh
 
 from hashlib import sha256
@@ -26,7 +26,7 @@ CONFIGURATION_FILE = os.path.expanduser("~/.dreampi.json")
 
 def scan_mac_address():
     mac = get_mac()
-    return sha256(':'.join(("%012X" % mac)[i:i+2] for i in range(0, 12, 2))).hexdigest()
+    return sha256(':'.join(("%012X" % mac)[i:i+2] for i in range(0, 12, 2)).encode()).hexdigest()
 
 
 class DreamcastNowThread(threading.Thread):
@@ -51,7 +51,7 @@ class DreamcastNowThread(threading.Thread):
                     # We did a DNS lookup, what was it?
                     remainder = line[line.find("query[A]") + len("query[A]"):].strip()
                     domain = remainder.split(" ", 1)[0].strip()
-                    dns_query = sha256(domain).hexdigest()
+                    dns_query = sha256(domain.encode()).hexdigest()
                     break
 
             user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT), Dreamcast Now'
@@ -61,9 +61,9 @@ class DreamcastNowThread(threading.Thread):
             if dns_query:
                 data["dns_query"] = dns_query
 
-            data = urllib.urlencode(data)
-            req = urllib2.Request(API_ROOT + UPDATE_END_POINT.format(mac_address=mac_address), data, header)
-            urllib2.urlopen(req) # Send POST update
+            data = urlencode(data).encode()
+            req = Request(API_ROOT + UPDATE_END_POINT.format(mac_address=mac_address), data, header)
+            urlopen(req)  # Send POST update
 
         while self._running:
             try:
@@ -119,3 +119,4 @@ class DreamcastNowService(object):
         self._thread.stop()
         self._thread = None
         logger.info("dcnow stopped")
+
