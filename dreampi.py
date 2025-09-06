@@ -1,7 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #dreampi.py_version=202402202004
-# from __future__ import absolute_import
-# from __future__ import print_function
 import atexit
 # from typing import List, Optional, Tuple
 import serial
@@ -858,11 +856,10 @@ def process():
             
             modem.update()
             char = modem._serial.read(1)
-            char = char.strip()
             if not char:
                 continue
 
-            if ord(char) == 16:
+            if char[0] == 16:
                 # DLE character
                 try:
                     parsed = netlink.digit_parser(modem)
