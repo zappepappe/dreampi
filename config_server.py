@@ -1,21 +1,20 @@
 import json
 import threading
-import cgi
+from urllib.parse import parse_qs
 import os
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from dcnow import CONFIGURATION_FILE, scan_mac_address
 
 
 class DreamPiConfigurationService(BaseHTTPRequestHandler):
 
     def _get_post_data(self):
-        ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
-        if ctype == 'multipart/form-data':
-            postvars = cgi.parse_multipart(self.rfile, pdict)
-        elif ctype == 'application/x-www-form-urlencoded':
-            length = int(self.headers.getheader('content-length'))
-            postvars = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
+        if self.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            postvars = parse_qs(
+                self.rfile.read(int(self.headers.get('Content-Length'))).decode(),
+                keep_blank_values=True
+            )
         else:
             postvars = {}
 
@@ -35,7 +34,7 @@ class DreamPiConfigurationService(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({
             "mac_address": scan_mac_address(),
             "is_enabled": enabled_state
-        }))
+        }).encode())
 
 
     def do_POST(self):
@@ -58,7 +57,7 @@ class DreamPiConfigurationService(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({
             "mac_address": scan_mac_address(),
             "is_enabled": enabled_state
-        }))
+        }).encode())
 
 
 server = None
