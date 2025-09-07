@@ -290,7 +290,7 @@ def start_service(name):
     try:
         logger.info("Starting {} process - Thanks ShuoumaDC!".format(name))
         with open(os.devnull, "wb") as devnull:
-            subprocess.check_call(["sudo", "service", name, "start"], stdout=devnull)
+            subprocess.check_call(["service", name, "start"], stdout=devnull)
     except (subprocess.CalledProcessError, IOError):
         logging.warning("Unable to start the {} process".format(name))
 
@@ -299,7 +299,7 @@ def stop_service(name):
     try:
         logger.info("Stopping {} process".format(name))
         with open(os.devnull, "wb") as devnull:
-            subprocess.check_call(["sudo", "service", name, "stop"], stdout=devnull)
+            subprocess.check_call(["service", name, "stop"], stdout=devnull)
     except (subprocess.CalledProcessError, IOError):
         logging.warning("Unable to stop the {} process".format(name))
 
@@ -780,7 +780,7 @@ def process():
 
     # Make sure pppd isn't running
     with open(os.devnull, "wb") as devnull:
-        subprocess.call(["sudo", "killall", "pppd"], stderr=devnull)
+        subprocess.call(["killall", "pppd"], stderr=devnull)
 
     device_and_speed, internet_connected = None, False
     # Startup checks, make sure that we don't do anything until
