@@ -259,7 +259,7 @@ def xbandServer(modem):
             if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
                 time.sleep(0.1)
             else:
-                logger.warn("tcp connection dropped")
+                logger.warning("tcp connection dropped")
                 break
         if not modem._serial.cd:
             logger.info("1: CD is not asserted")
