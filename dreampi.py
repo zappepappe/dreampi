@@ -966,7 +966,7 @@ def process():
         elif mode == "CONNECTED":
             dcnow.go_online(dreamcast_ip)
             
-            for line in sh.tail("-f", "/var/log/messages", "-n", "1", _iter=True):
+            for line in sh.journalctl("-f", "-n", "1", "--no-pager", _iter=True):
                 if "pppd" in line and "Exit" in line:#wait for pppd to execute the ip-down script
                     logger.info("Detected modem hang up, going back to listening")
                     break
