@@ -49,14 +49,14 @@ class PortForwarding:
                         try:
                             self._upnp.addportmapping(p, proto, self._dreamcast_ip, p, "DreamPi: {}".format(game), '')
                         except Exception as e:
-                            self._logger.warn("Could not create UPnP port mapping for {} ({}/{}): {}".format(game, p, proto, e))
+                            self._logger.warning("Could not create UPnP port mapping for {} ({}/{}): {}".format(game, p, proto, e))
                 else:
                     self._logger.info("Trying to create UPnP port mapping for {} ({}/{})".format(game, port, proto))
 
                     try:
                         self._upnp.addportmapping(port, proto, self._dreamcast_ip, port, "DreamPi: {}".format(game), '')
                     except Exception as e:
-                        self._logger.warn("Could not create UPnP port mapping for {} ({}/{}): {}".format(game, port, proto, e))
+                        self._logger.warning("Could not create UPnP port mapping for {} ({}/{}): {}".format(game, port, proto, e))
 
     def delete_all(self):
         """
