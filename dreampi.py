@@ -556,7 +556,7 @@ class Modem(object):
         )
 
     def disconnect(self):
-        if self._serial and self._serial.is_open:
+        if self._serial and self._serial.isOpen():
             self._serial.flush()
             self._serial.close()
             self._serial = None
