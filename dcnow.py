@@ -40,7 +40,7 @@ class DreamcastNowThread(threading.Thread):
             if not self._service._enabled:
                 return
 
-            lines = [ x for x in sh.tail("/var/log/syslog", "-n", "10", _iter=True) ]
+            lines = [x for x in sh.journalctl("-n", "10", "-o", "cat", _iter=True)]
             dns_query = None
             for line in lines[::-1]:
                 if "CONNECT" in line and "dreampi" in line:
@@ -119,3 +119,4 @@ class DreamcastNowService(object):
         self._thread.stop()
         self._thread = None
         logger.info("dcnow stopped")
+
