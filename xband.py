@@ -109,7 +109,7 @@ def xbandListen(modem):
                     init_xband(modem)
                     # modem.connect_netlink(speed=57600,timeout=0.05,rtscts=True)
                     # modem.query_modem(b'AT%E0')
-                    # modem.query_modem(b"AT\V1%C0")
+                    # modem.query_modem(b"AT\\V1%C0")
                     # modem.query_modem(b'AT+MS=V22b')
                     conn.sendall(b'ACK RESET')
                     # time.sleep(2)
@@ -463,5 +463,5 @@ def netlink_exchange(side,net_state,opponent,ser=ser):
 def init_xband(modem):
         modem.connect_netlink(speed=57600,timeout=0.05,rtscts=True)
         modem.query_modem(b'AT%E0')
-        modem.query_modem(b"AT\V1%C0")
+        modem.query_modem(b"AT\\V1%C0")
         modem.query_modem(b'AT+MS=V22b')
