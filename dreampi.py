@@ -953,9 +953,9 @@ def process():
                             mode = "NETLINK_CONNECTED"
                     else:
                         modem.connect_netlink(speed=57600,timeout=0.01,rtscts = True) #non-blocking version
-                        modem.query_modem(b"AT%E0\V1")
+                        modem.query_modem(b"AT%E0\\V1")
                         if saturn:
-                            modem.query_modem(b'AT%C0\N3')
+                            modem.query_modem(b'AT%C0\\N3')
                             modem.query_modem(b'AT+MS=V32b,1,14400,14400,14400,14400')
                         modem.query_modem(b"ATA", timeout=120, response = "CONNECT")
                         mode = "NETLINK_CONNECTED"
