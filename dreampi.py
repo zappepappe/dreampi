@@ -58,7 +58,7 @@ def updater():
                     f.write(r.content)
                 logger.info('%s Updated' % local_script)
                 if local_script == "dreampi.py":
-                    os.system("sudo chmod +x dreampi.py")
+                    os.system("chmod +x dreampi.py")
                 restartFlag = True
             
         except requests.exceptions.HTTPError:
@@ -71,7 +71,7 @@ def updater():
 
     if restartFlag:
         logger.info('Updated. Rebooting')
-        os.system("sudo reboot")
+        os.system("reboot")
 
 DNS_FILE = "https://dreamcast.online/dreampi/dreampi_dns.conf"
 
@@ -107,7 +107,7 @@ def check_internet_connection():
 
 
 def restart_dnsmasq():
-    subprocess.call("sudo service dnsmasq restart".split())
+    subprocess.call("service dnsmasq restart".split())
 
 
 def update_dns_file():
@@ -136,7 +136,7 @@ def update_dns_file():
         return
 
     # Stop the server
-    subprocess.check_call("sudo service dnsmasq stop".split())
+    subprocess.check_call("service dnsmasq stop".split())
 
     # Update the configuration
     try:
@@ -146,7 +146,7 @@ def update_dns_file():
         logging.exception("Found remote DNS config but failed to apply it locally")
 
     # Start the server again
-    subprocess.check_call("sudo service dnsmasq start".split())
+    subprocess.check_call("service dnsmasq start".split())
 
 
 # Update dreampi.py if file exists in /boot
@@ -155,11 +155,11 @@ def dreampi_py_local_update():
         logger.info("No update file is found in /boot")
         return
 
-    os.system("sudo mv /boot/dpiupdate.py /home/pi/dreampi/dreampi.py")
-    os.system("sudo chown pi:pi /home/pi/dreampi/dreampi.py")
-    os.system("sudo chmod +x /home/pi/dreampi/dreampi.py")
+    os.system("mv /boot/dpiupdate.py /home/pi/dreampi/dreampi.py")
+    os.system("chown pi:pi /home/pi/dreampi/dreampi.py")
+    os.system("chmod +x /home/pi/dreampi/dreampi.py")
     logger.info('Updated the dreampi.py from /boot/dpiupdate.py ... Rebooting')
-    os.system("sudo reboot")
+    os.system("reboot")
 
 # Increase the TTL in the IP HDR from 30 to 64
 def add_increased_ttl():
@@ -999,7 +999,7 @@ def enable_prom_mode_on_wlan0():
     """
 
     try:
-        subprocess.check_call("sudo ifconfig wlan0 promisc".split())
+        subprocess.check_call("ifconfig wlan0 promisc".split())
         logging.info("Promiscuous mode set on wlan0")
     except subprocess.CalledProcessError:
         logging.info("Attempted to set promiscuous mode on wlan0 but was unsuccessful")
