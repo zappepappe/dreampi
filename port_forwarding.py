@@ -24,8 +24,8 @@ class PortForwarding:
         (17219, 'TCP', 'Worms World Party'),
         (37171, 'UDP', 'World Series Baseball 2K2'),
         (47624, 'TCP', 'PBA Tour Bowling 2001 / Starlancer'),
-        (range(2300, 2401), 'TCP', 'PBA Tour Bowling 2001 / Starlancer'),
-        (range(2300, 2401), 'UDP', 'PBA Tour Bowling 2001 / Starlancer')
+        (list(range(2300, 2401)), 'TCP', 'PBA Tour Bowling 2001 / Starlancer'),
+        (list(range(2300, 2401)), 'UDP', 'PBA Tour Bowling 2001 / Starlancer')
     ]
 
     def __init__(self, dc_ip, logger):
