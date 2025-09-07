@@ -795,9 +795,9 @@ def process():
             break
 
         elif not internet_connected:
-            logger.warn("Unable to detect an internet connection. Waiting...")
+            logger.warning("Unable to detect an internet connection. Waiting...")
         elif not device_and_speed:
-            logger.warn("Unable to find a modem device. Waiting...")
+            logger.warning("Unable to find a modem device. Waiting...")
 
         time.sleep(5)
 
