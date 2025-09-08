@@ -77,6 +77,7 @@ DNS_FILE = "https://dreamcast.online/dreampi/dreampi_dns.conf"
 
 
 logger = logging.getLogger("dreampi")
+logger.propagate = False
 
 
 def check_internet_connection():
