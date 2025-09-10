@@ -227,7 +227,12 @@ def getserial():
             cpuserial = b"ERROR000000000"
             logger.info("Couldn't find valid CPU ID, using error ID")
     else:
-        cpuserial = subprocess.check_output(["wmic","cpu","get","ProcessorId","/format:csv"]).strip().split(b",")[-1]
+        cpuserial = subprocess.run(
+            ["wmic","cpu","get","ProcessorId","/format:csv"],
+            capture_output=True,
+            text=False,
+            check=True
+        ).stdout.strip().split(b",")[-1]
         logger.info("Found valid CPU ID")
     return cpuserial
     
@@ -239,7 +244,12 @@ def xbandServer(modem):
     s.setblocking(False)
     s.settimeout(15)
     s.connect(("xbserver.retrocomputing.network", 56969))
-    # cpu = subprocess.check_output(["wmic","cpu","get","ProcessorId","/format:csv"]).strip().split(b",")[-1]
+    # cpu = subprocess.run(
+    #     ["wmic","cpu","get","ProcessorId","/format:csv"],
+    #     capture_output=True,
+    #     text=False,
+    #     check=True
+    # ).stdout.strip().split(b",")[-1]
     hwid = getserial()
     sdata = b"///////PI-" + hwid + b"\x0a"
     sentid = 0
