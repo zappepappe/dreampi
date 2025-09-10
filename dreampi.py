@@ -58,7 +58,7 @@ def updater():
                     f.write(r.content)
                 logger.info('%s Updated' % local_script)
                 if local_script == "dreampi.py":
-                    os.system("chmod +x dreampi.py")
+                    subprocess.run(["chmod", "+x", "dreampi.py"])
                 restartFlag = True
             
         except requests.exceptions.HTTPError:
@@ -71,7 +71,7 @@ def updater():
 
     if restartFlag:
         logger.info('Updated. Rebooting')
-        os.system("reboot")
+        subprocess.run(["reboot"])
 
 DNS_FILE = "https://dreamcast.online/dreampi/dreampi_dns.conf"
 
@@ -108,7 +108,7 @@ def check_internet_connection():
 
 
 def restart_dnsmasq():
-    subprocess.call("service dnsmasq restart".split())
+    subprocess.run(["service", "dnsmasq", "restart"])
 
 
 def update_dns_file():
@@ -137,7 +137,7 @@ def update_dns_file():
         return
 
     # Stop the server
-    subprocess.check_call("service dnsmasq stop".split())
+    subprocess.run(["service", "dnsmasq", "stop"], check=True)
 
     # Update the configuration
     try:
@@ -147,7 +147,7 @@ def update_dns_file():
         logging.exception("Found remote DNS config but failed to apply it locally")
 
     # Start the server again
-    subprocess.check_call("service dnsmasq start".split())
+    subprocess.run(["service", "dnsmasq", "start"], check=True)
 
 
 # Update dreampi.py if file exists in /boot
@@ -156,11 +156,11 @@ def dreampi_py_local_update():
         logger.info("No update file is found in /boot")
         return
 
-    os.system("mv /boot/dpiupdate.py /home/pi/dreampi/dreampi.py")
-    os.system("chown pi:pi /home/pi/dreampi/dreampi.py")
-    os.system("chmod +x /home/pi/dreampi/dreampi.py")
+    subprocess.run(["mv", "/boot/dpiupdate.py", "/home/pi/dreampi/dreampi.py"])
+    subprocess.run(["chown", "pi:pi", "/home/pi/dreampi/dreampi.py"])
+    subprocess.run(["chmod", "+x", "/home/pi/dreampi/dreampi.py"])
     logger.info('Updated the dreampi.py from /boot/dpiupdate.py ... Rebooting')
-    os.system("reboot")
+    subprocess.run(["reboot"])
 
 # Increase the TTL in the IP HDR from 30 to 64
 def add_increased_ttl():
@@ -291,7 +291,7 @@ def start_service(name):
     try:
         logger.info("Starting {} process - Thanks ShuoumaDC!".format(name))
         with open(os.devnull, "wb") as devnull:
-            subprocess.check_call(["service", name, "start"], stdout=devnull)
+            subprocess.run(["service", name, "start"], stdout=devnull, check=True)
     except (subprocess.CalledProcessError, IOError):
         logging.warning("Unable to start the {} process".format(name))
 
@@ -300,7 +300,7 @@ def stop_service(name):
     try:
         logger.info("Stopping {} process".format(name))
         with open(os.devnull, "wb") as devnull:
-            subprocess.check_call(["service", name, "stop"], stdout=devnull)
+            subprocess.run(["service", name, "stop"], stdout=devnull, check=True)
     except (subprocess.CalledProcessError, IOError):
         logging.warning("Unable to stop the {} process".format(name))
 
@@ -320,7 +320,7 @@ def get_default_iface_name_linux():
 
 def ip_exists(ip, iface):
     command = ["arp", "-a", "-i", iface]
-    output = subprocess.check_output(command).decode()
+    output = subprocess.run(command, capture_output=True, text=True, check=True).stdout
     if ("(%s)" % ip) in output:
         logger.info("IP existed at %s", ip)
         return True
@@ -353,9 +353,13 @@ def autoconfigure_ppp(device, speed):
        Returns the IP allocated to the Dreamcast
     """
 
-    gateway_ip = subprocess.check_output(
-        "route -n | grep 'UG[ \t]' | awk '{print $2}'", shell=True
-    ).decode()
+    gateway_ip = subprocess.run(
+        "route -n | grep 'UG[ \t]' | awk '{print $2}'",
+        shell=True,
+        capture_output=True,
+        text=True,
+        check=True
+    ).stdout
     subnet = gateway_ip.split(".")[:3]
 
     PEERS_TEMPLATE = "{device}\n" "{device_speed}\n" "{this_ip}:{dc_ip}\n" "auth\n"
@@ -406,7 +410,9 @@ def detect_device_and_speed():
     command = ["wvdialconf", "/dev/null"]
 
     try:
-        output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode()
+        output = subprocess.run(
+            command, stderr=subprocess.STDOUT, capture_output=True, text=True, check=True
+        ).stdout
 
         lines = output.split("\n")
 
@@ -617,7 +623,11 @@ class Modem(object):
         self.send_command(b"ATA", ignore_responses=[b"OK"])
         time.sleep(5)
         logger.info("Call answered!")
-        logger.info(subprocess.check_output(["pon", "dreamcast"]).decode())
+        logger.info(
+            subprocess.run(
+                ["pon", "dreamcast"], capture_output=True, text=True, check=True
+            ).stdout
+        )
         logger.info("Connected")
 
     def netlink_answer(self):
@@ -781,7 +791,7 @@ def process():
 
     # Make sure pppd isn't running
     with open(os.devnull, "wb") as devnull:
-        subprocess.call(["killall", "pppd"], stderr=devnull)
+        subprocess.run(["killall", "pppd"], stderr=devnull)
 
     device_and_speed, internet_connected = None, False
     # Startup checks, make sure that we don't do anything until
@@ -1000,7 +1010,7 @@ def enable_prom_mode_on_wlan0():
     """
 
     try:
-        subprocess.check_call("ifconfig wlan0 promisc".split())
+        subprocess.run(["ifconfig", "wlan0", "promisc"], check=True)
         logging.info("Promiscuous mode set on wlan0")
     except subprocess.CalledProcessError:
         logging.info("Attempted to set promiscuous mode on wlan0 but was unsuccessful")
