@@ -440,7 +440,7 @@ def detect_device_and_speed():
     return ("/dev/ttyACM0", MAX_SPEED)
 
 
-class Daemon(object):
+class Daemon:
     def __init__(self, pidfile, process):
         self.pidfile = Path(pidfile)
         self.process = process
@@ -518,7 +518,7 @@ class Daemon(object):
         self.process()
 
 
-class Modem(object):
+class Modem:
     def __init__(self, device, speed, send_dial_tone=True):
         self._device, self._speed = device, speed
         self._serial = None
@@ -756,7 +756,7 @@ class Modem(object):
                 self._time_since_last_dial_tone = now
 
 
-class GracefulKiller(object):
+class GracefulKiller:
     def __init__(self):
         self.kill_now = False
         signal.signal(signal.SIGINT, self.exit_gracefully)
