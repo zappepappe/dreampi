@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import threading
 import os
@@ -119,3 +119,4 @@ class DreamcastNowService(object):
         self._thread.stop()
         self._thread = None
         logger.info("dcnow stopped")
+
