@@ -118,5 +118,3 @@ class DreamcastNowService:
         self._thread.stop()
         self._thread = None
         logger.info("dcnow stopped")
-
-
