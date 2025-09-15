@@ -53,13 +53,13 @@ def updater():
                             local_version = line.decode().split('version=')[1].strip()
                             break
             if upstream_version == local_version:
-                logger.info("%s Up To Date" % local_script)
+                logger.info('%s Up To Date' % local_script)
             else:
                 r = requests.get(url)
                 r.raise_for_status()
                 with local_script.open('wb') as f:
                     f.write(r.content)
-                logger.info("%s Updated" % local_script)
+                logger.info('%s Updated' % local_script)
                 if local_script.name == "dreampi.py":
                     local_script.chmod(
                         local_script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
