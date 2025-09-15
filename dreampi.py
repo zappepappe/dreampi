@@ -17,6 +17,9 @@ import config_server
 import iptc
 import select
 import requests
+from pathlib import Path
+import shutil
+import stat
 
 from dcnow import DreamcastNowService
 from port_forwarding import PortForwarding
@@ -24,7 +27,7 @@ from port_forwarding import PortForwarding
 from datetime import datetime, timedelta
 def updater():
 
-    if os.path.isfile("/boot/noautoupdates.txt") == True:
+    if Path("/boot/noautoupdates.txt").is_file():
         logger.info("Dreampi script auto updates are disabled")
         return
     netlink_script_url = "https://raw.githubusercontent.com/eaudunord/Netlink/latest/tunnel/netlink.py"
@@ -40,25 +43,27 @@ def updater():
                 if b'_version' in line: 
                     upstream_version = str(line.decode().split('version=')[1]).strip()
                     break
-            local_script = "/home/pi/dreampi/"+script.split("/")[-1]
-            if os.path.isfile(local_script) == False:
+            local_script = Path("/home/pi/dreampi") / Path(script).name
+            if not local_script.is_file():
                 local_version = None
             else:
-                with open(local_script,'rb') as f:
+                with local_script.open('rb') as f:
                     for line in f:
                         if b'_version' in line:
-                            local_version = str(line.decode().split('version=')[1]).strip()
+                            local_version = line.decode().split('version=')[1].strip()
                             break
             if upstream_version == local_version:
-                logger.info('%s Up To Date' % local_script)
+                logger.info("%s Up To Date" % local_script)
             else:
                 r = requests.get(url)
                 r.raise_for_status()
-                with open(local_script,'wb') as f:
+                with local_script.open('wb') as f:
                     f.write(r.content)
-                logger.info('%s Updated' % local_script)
-                if local_script == "dreampi.py":
-                    subprocess.run(["chmod", "+x", "dreampi.py"])
+                logger.info("%s Updated" % local_script)
+                if local_script.name == "dreampi.py":
+                    local_script.chmod(
+                        local_script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+                    )
                 restartFlag = True
             
         except requests.exceptions.HTTPError:
@@ -140,9 +145,9 @@ def update_dns_file():
     subprocess.run(["service", "dnsmasq", "stop"], check=True)
 
     # Update the configuration
+    dns_file_path = Path("/etc/dnsmasq.d/dreampi.conf")
     try:
-        with open("/etc/dnsmasq.d/dreampi.conf", "w") as f:
-            f.write(response.read())
+        dns_file_path.write_text(response.text)
     except IOError:
         logging.exception("Found remote DNS config but failed to apply it locally")
 
@@ -152,13 +157,19 @@ def update_dns_file():
 
 # Update dreampi.py if file exists in /boot
 def dreampi_py_local_update():
-    if os.path.isfile("/boot/dpiupdate.py") == False:
+    update_file = Path("/boot/dpiupdate.py")
+    if not update_file.is_file():
         logger.info("No update file is found in /boot")
         return
 
-    subprocess.run(["mv", "/boot/dpiupdate.py", "/home/pi/dreampi/dreampi.py"])
-    subprocess.run(["chown", "pi:pi", "/home/pi/dreampi/dreampi.py"])
-    subprocess.run(["chmod", "+x", "/home/pi/dreampi/dreampi.py"])
+    local_script = Path("/home/pi/dreampi/dreampi.py")
+
+    shutil.move(update_file, local_script)
+    shutil.chown(local_script, user="pi", group="pi")
+    local_script.chmod(
+        local_script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    )
+    
     logger.info('Updated the dreampi.py from /boot/dpiupdate.py ... Rebooting')
     subprocess.run(["reboot"])
 
@@ -290,8 +301,7 @@ def stop_afo_patching(afo_patcher_rule):
 def start_service(name):
     try:
         logger.info("Starting {} process - Thanks ShuoumaDC!".format(name))
-        with open(os.devnull, "wb") as devnull:
-            subprocess.run(["service", name, "start"], stdout=devnull, check=True)
+        subprocess.run(["service", name, "start"], stdout=subprocess.DEVNULL, check=True)
     except (subprocess.CalledProcessError, IOError):
         logging.warning("Unable to start the {} process".format(name))
 
@@ -299,15 +309,14 @@ def start_service(name):
 def stop_service(name):
     try:
         logger.info("Stopping {} process".format(name))
-        with open(os.devnull, "wb") as devnull:
-            subprocess.run(["service", name, "stop"], stdout=devnull, check=True)
+        subprocess.run(["service", name, "stop"], stdout=subprocess.DEVNULL, check=True)
     except (subprocess.CalledProcessError, IOError):
         logging.warning("Unable to stop the {} process".format(name))
 
 
 def get_default_iface_name_linux():
-    route = "/proc/net/route"
-    with open(route) as f:
+    route = Path("/proc/net/route")
+    with route.open() as f:
         for line in f.readlines():
             try:
                 iface, dest, _, flags, _, _, _, _, _, _, _, = line.strip().split()
@@ -373,22 +382,19 @@ def autoconfigure_ppp(device, speed):
 
     logger.info("Dreamcast IP: {}".format(dreamcast_ip))
 
+    peers_path = Path("/etc/ppp/peers/dreamcast")
     peers_content = PEERS_TEMPLATE.format(
         device=device, device_speed=speed, this_ip=this_ip, dc_ip=dreamcast_ip
     )
+    peers_path.write_text(peers_content)
 
-    with open("/etc/ppp/peers/dreamcast", "w") as f:
-        f.write(peers_content)
-
+    options_path = Path("/etc/ppp/options")
     options_content = OPTIONS_TEMPLATE.format(this_ip=this_ip)
+    options_path.write_text(options_content)
 
-    with open("/etc/ppp/options", "w") as f:
-        f.write(options_content)
-
+    pap_secrets_path = Path("/etc/ppp/pap-secrets")
     pap_secrets_content = PAP_SECRETS_TEMPLATE
-
-    with open("/etc/ppp/pap-secrets", "w") as f:
-        f.write(pap_secrets_content)
+    pap_secrets_path.write_text(pap_secrets_content)
 
     return dreamcast_ip
 
@@ -436,7 +442,7 @@ def detect_device_and_speed():
 
 class Daemon(object):
     def __init__(self, pidfile, process):
-        self.pidfile = pidfile
+        self.pidfile = Path(pidfile)
         self.process = process
 
     def daemonize(self):
@@ -461,15 +467,15 @@ class Daemon(object):
 
         atexit.register(self.delete_pid)
         pid = str(os.getpid())
-        with open(self.pidfile, "w+") as f:
+        with self.pidfile.open("w+") as f:
             f.write("%s\n" % pid)
 
     def delete_pid(self):
-        os.remove(self.pidfile)
+        self.pidfile.unlink()
 
     def _read_pid_from_pidfile(self):
         try:
-            with open(self.pidfile, "r") as pf:
+            with self.pidfile.open("r") as pf:
                 pid = int(pf.read().strip())
         except IOError:
             pid = None
@@ -499,8 +505,8 @@ class Daemon(object):
                 time.sleep(0.1)
 
         except OSError:
-            if os.path.exists(self.pidfile):
-                os.remove(self.pidfile)
+            if self.pidfile.exists():
+                self.pidfile.unlink()
             else:
                 sys.exit(1)
 
@@ -535,10 +541,10 @@ class Modem(object):
         return self._device
 
     def _read_dial_tone(self):
-        this_dir = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-        dial_tone_wav = os.path.join(this_dir, "dial-tone.wav")
+        this_dir = Path(__file__).resolve().parent
+        dial_tone_wav = this_dir / "dial-tone.wav"
 
-        with open(dial_tone_wav, "rb") as f:
+        with dial_tone_wav.open("rb") as f:
             dial_tone = f.read()  # Read the entire wav file
             dial_tone = dial_tone[44:]  # Strip the header (44 bytes)
 
@@ -790,8 +796,7 @@ def process():
     dial_tone_enabled = "--disable-dial-tone" not in sys.argv
 
     # Make sure pppd isn't running
-    with open(os.devnull, "wb") as devnull:
-        subprocess.run(["killall", "pppd"], stderr=devnull)
+    subprocess.run(["killall", "pppd"], stderr=subprocess.DEVNULL)
 
     device_and_speed, internet_connected = None, False
     # Startup checks, make sure that we don't do anything until
