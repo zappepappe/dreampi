@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import threading
-import os
 import json
 import time
 import logging
+from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 import sh
@@ -20,7 +20,7 @@ UPDATE_END_POINT = "/api/update/{mac_address}/"
 
 UPDATE_INTERVAL = 15
 
-CONFIGURATION_FILE = os.path.expanduser("~/.dreampi.json")
+CONFIGURATION_FILE = Path.home() / ".dreampi.json"
 
 # dcnow_stop = threading.Event()
 
@@ -33,7 +33,7 @@ class DreamcastNowThread(threading.Thread):
     def __init__(self, service):
         self._service = service
         self._running = True
-        super(DreamcastNowThread, self).__init__()
+        super().__init__()
 
     def run(self):
         def post_update():
@@ -78,7 +78,7 @@ class DreamcastNowThread(threading.Thread):
         self.join()
 
 
-class DreamcastNowService(object):
+class DreamcastNowService:
     def __init__(self):
         self._thread = None
         self._mac_address = None
@@ -95,10 +95,9 @@ class DreamcastNowService(object):
 
     def reload_settings(self):
         settings_file = CONFIGURATION_FILE
-
-        if os.path.exists(settings_file):
-            with open(settings_file, "r") as settings:
-                content = json.loads(settings.read())
+        if settings_file.exists():
+            with settings_file.open("r") as settings:
+                content = json.load(settings)
                 self._enabled = content["enabled"]
 
     def go_online(self, dreamcast_ip):
@@ -119,4 +118,5 @@ class DreamcastNowService(object):
         self._thread.stop()
         self._thread = None
         logger.info("dcnow stopped")
+
 
