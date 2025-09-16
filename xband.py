@@ -75,17 +75,13 @@ def xbandInit():
                 "https://raw.githubusercontent.com/astoeckel/femtosip/8d8a3a2ba7534b4b805bb02dad826dc15ec8803b/femtosip.py"
             )
             r.raise_for_status()
-            with (femtoSipPath / "femtosip.py").open('wb') as f:
-                text = r.content.decode('ascii','ignore').encode()
-                f.write(text)
+            (femtoSipPath / "femtosip.py").write_bytes(r.content.decode('ascii','ignore').encode())
             logger.info('fetched femtosip')
             r = requests.get("https://github.com/astoeckel/femtosip/raw/master/LICENSE")
             r.raise_for_status()
-            with (femtoSipPath / "LICENSE").open('wb') as f:
-                f.write(r.content)
+            (femtoSipPath / "LICENSE").write_bytes(r.content)
             logger.info('fetched LICENSE')
-            with (femtoSipPath / "__init__.py").open('wb') as f:
-                pass
+            (femtoSipPath / "__init__.py").write_bytes(b"")
         except requests.exceptions.HTTPError:
             logger.info("unable to fetch femtosip")
             return "dropped"
@@ -220,11 +216,11 @@ def getserial():
     cpuserial = b"0000000000000000"
     if osName == 'posix':
         try:
-            f = open('/proc/cpuinfo','r')
-            for line in f:
-                if line[0:6]=='Serial':
+            cpuinfo = Path("/proc/cpuinfo").read_text()
+            for line in cpuinfo.splitlines():
+                if line.startswith("Serial"):
                     cpuserial = line[10:26].encode()
-            f.close()
+                    break
             logger.info("Found valid CPU ID")
         except:
             cpuserial = b"ERROR000000000"
