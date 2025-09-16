@@ -29,8 +29,7 @@ class DreamPiConfigurationService(BaseHTTPRequestHandler):
         enabled_state = True
         config_path = Path(CONFIGURATION_FILE)
         if config_path.exists():
-            with config_path.open("r") as f:
-                enabled_state = json.load(f)["enabled"]
+            enabled_state = json.loads(config_path.read_text())["enabled"]
 
         self.wfile.write(json.dumps({
             "mac_address": scan_mac_address(),
@@ -47,14 +46,10 @@ class DreamPiConfigurationService(BaseHTTPRequestHandler):
         self.end_headers()
 
         post_data = self._get_post_data()
-        if 'disable' in post_data:
-            enabled_state = False
-        else:
-            enabled_state = True
+        enabled_state = 'disable' not in post_data
 
         config_path = Path(CONFIGURATION_FILE)
-        with config_path.open("w") as f:
-            json.dump({"enabled": enabled_state}, f)
+        config_path.write_text(json.dumps({"enabled": enabled_state}))
 
         self.wfile.write(json.dumps({
             "mac_address": scan_mac_address(),
