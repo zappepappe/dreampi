@@ -11,6 +11,7 @@ from datetime import datetime
 import logging
 import select
 import os
+from pathlib import Path
 import requests
 import subprocess
 import errno
@@ -44,9 +45,9 @@ def getWanIP():
 
 
 if osName == 'posix': # should work on linux and Mac for USB modem, but untested.
-    femtoSipPath = "/home/pi/dreampi/femtosip"
+    femtoSipPath = Path("/home/pi/dreampi/femtosip")
 else:
-    femtoSipPath = os.path.realpath('./')+"/femtosip"
+    femtoSipPath = Path.cwd() / "femtosip"
 
 def openXband():
     PORT = 65433
@@ -67,21 +68,21 @@ def closeXband():
 
 
 def xbandInit():
-    if os.path.exists(femtoSipPath) == False:
+    if not femtoSipPath.exists():
         try:
-            os.makedirs(femtoSipPath)
+            femtoSipPath.mkdir(parents=True)
             r = requests.get("https://raw.githubusercontent.com/eaudunord/femtosip/master/femtosip.py")
             r.raise_for_status()
-            with open(femtoSipPath+"/femtosip.py",'wb') as f:
+            with (femtoSipPath / "femtosip.py").open('wb') as f:
                 text = r.content.decode('ascii','ignore').encode()
                 f.write(text)
             logger.info('fetched femtosip')
             r = requests.get("https://github.com/astoeckel/femtosip/raw/master/LICENSE")
             r.raise_for_status()
-            with open(femtoSipPath+"/LICENSE",'wb') as f:
+            with (femtoSipPath / "LICENSE").open('wb') as f:
                 f.write(r.content)
             logger.info('fetched LICENSE')
-            with open(femtoSipPath+"/__init__.py",'wb') as f:
+            with (femtoSipPath / "__init__.py").open('wb') as f:
                 pass
         except requests.exceptions.HTTPError:
             logger.info("unable to fetch femtosip")
