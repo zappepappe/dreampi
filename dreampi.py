@@ -47,18 +47,16 @@ def updater():
             if not local_script.is_file():
                 local_version = None
             else:
-                with local_script.open('rb') as f:
-                    for line in f:
-                        if b'_version' in line:
-                            local_version = line.decode().split('version=')[1].strip()
-                            break
+                for line in local_script.read_text().splitlines():
+                    if '_version' in line:
+                        local_version = line.split('version=')[1].strip()
+                        break
             if upstream_version == local_version:
                 logger.info('%s Up To Date' % local_script)
             else:
                 r = requests.get(url)
                 r.raise_for_status()
-                with local_script.open('wb') as f:
-                    f.write(r.content)
+                local_script.write_bytes(r.content)
                 logger.info('%s Updated' % local_script)
                 if local_script.name == "dreampi.py":
                     local_script.chmod(
@@ -316,15 +314,14 @@ def stop_service(name):
 
 def get_default_iface_name_linux():
     route = Path("/proc/net/route")
-    with route.open() as f:
-        for line in f.readlines():
-            try:
-                iface, dest, _, flags, _, _, _, _, _, _, _, = line.strip().split()
-                if dest != "00000000" or not int(flags, 16) & 2:
-                    continue
-                return iface
-            except:
+    for line in route.read_text().splitlines():
+        try:
+            iface, dest, _, flags, _, _, _, _, _, _, _, = line.strip().split()
+            if dest != "00000000" or not int(flags, 16) & 2:
                 continue
+            return iface
+        except:
+            continue
 
 
 def ip_exists(ip, iface):
@@ -467,16 +464,14 @@ class Daemon:
 
         atexit.register(self.delete_pid)
         pid = str(os.getpid())
-        with self.pidfile.open("w+") as f:
-            f.write("%s\n" % pid)
+        self.pidfile.write_text("%s\n" % pid)
 
     def delete_pid(self):
         self.pidfile.unlink()
 
     def _read_pid_from_pidfile(self):
         try:
-            with self.pidfile.open("r") as pf:
-                pid = int(pf.read().strip())
+            pid = int(self.pidfile.read_text().strip())
         except IOError:
             pid = None
         return pid
@@ -541,12 +536,10 @@ class Modem:
         return self._device
 
     def _read_dial_tone(self):
-        this_dir = Path(__file__).resolve().parent
-        dial_tone_wav = this_dir / "dial-tone.wav"
+        dial_tone_wav = Path(__file__).resolve().parent / "dial-tone.wav"
 
-        with dial_tone_wav.open("rb") as f:
-            dial_tone = f.read()  # Read the entire wav file
-            dial_tone = dial_tone[44:]  # Strip the header (44 bytes)
+        # Read the entire wav file and strip the header (44 bytes)
+        dial_tone = dial_tone_wav.read_bytes()[44:]
 
         return dial_tone
 
