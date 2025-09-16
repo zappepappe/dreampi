@@ -71,7 +71,9 @@ def xbandInit():
     if not femtoSipPath.exists():
         try:
             femtoSipPath.mkdir(parents=True)
-            r = requests.get("https://raw.githubusercontent.com/eaudunord/femtosip/master/femtosip.py")
+            r = requests.get(
+                "https://raw.githubusercontent.com/astoeckel/femtosip/8d8a3a2ba7534b4b805bb02dad826dc15ec8803b/femtosip.py"
+            )
             r.raise_for_status()
             with (femtoSipPath / "femtosip.py").open('wb') as f:
                 text = r.content.decode('ascii','ignore').encode()
