@@ -96,9 +96,8 @@ class DreamcastNowService:
     def reload_settings(self):
         settings_file = CONFIGURATION_FILE
         if settings_file.exists():
-            with settings_file.open("r") as settings:
-                content = json.load(settings)
-                self._enabled = content["enabled"]
+            content = json.loads(settings_file.read_text())
+            self._enabled = content["enabled"]
 
     def go_online(self, dreamcast_ip):
         logger.info("starting dcnow")
@@ -118,3 +117,4 @@ class DreamcastNowService:
         self._thread.stop()
         self._thread = None
         logger.info("dcnow stopped")
+
