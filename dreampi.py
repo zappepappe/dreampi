@@ -14,10 +14,11 @@ import sh
 import signal
 import re
 import config_server
+from ipaddress import IPv4Address
 import iptc
 import select
-import requests
 from pathlib import Path
+import requests
 import shutil
 import stat
 
@@ -337,15 +338,12 @@ def ip_exists(ip, iface):
 
 def find_next_unused_ip(start):
     interface = get_default_iface_name_linux()
+    test_ip = IPv4Address(start)
 
-    parts = [int(x) for x in start.split(".")]
-    current_check = parts[-1] - 1
-
-    while current_check:
-        test_ip = ".".join([str(x) for x in parts[:3] + [current_check]])
+    while test_ip.packed[-1] > 0:
         if not ip_exists(test_ip, interface):
             return test_ip
-        current_check -= 1
+        test_ip -= 1
 
     raise Exception("Unable to find a free IP on the network")
 
@@ -359,14 +357,16 @@ def autoconfigure_ppp(device, speed):
        Returns the IP allocated to the Dreamcast
     """
 
-    gateway_ip = subprocess.run(
+    gw_ip = subprocess.run(
         "route -n | grep 'UG[ \t]' | awk '{print $2}'",
         shell=True,
         capture_output=True,
         text=True,
         check=True
-    ).stdout
-    subnet = gateway_ip.split(".")[:3]
+    ).stdout.strip()
+    gateway_ip = IPv4Address(gw_ip)
+    # Set last octet to 100, preserve network prefix
+    start_ip = IPv4Address(int(gateway_ip) & 0xFFFFFF00 | 100)
 
     PEERS_TEMPLATE = "{device}\n" "{device_speed}\n" "{this_ip}:{dc_ip}\n" "auth\n"
 
@@ -374,7 +374,7 @@ def autoconfigure_ppp(device, speed):
 
     PAP_SECRETS_TEMPLATE = "# Modded from dreampi.py\n" "# INBOUND connections\n" '*       *       ""      *' "\n"
 
-    this_ip = find_next_unused_ip(".".join(subnet) + ".100")
+    this_ip = find_next_unused_ip(start_ip)
     dreamcast_ip = find_next_unused_ip(this_ip)
 
     logger.info("Dreamcast IP: {}".format(dreamcast_ip))
@@ -393,7 +393,7 @@ def autoconfigure_ppp(device, speed):
     pap_secrets_content = PAP_SECRETS_TEMPLATE
     pap_secrets_path.write_text(pap_secrets_content)
 
-    return dreamcast_ip
+    return str(dreamcast_ip)
 
 
 ENABLE_SPEED_DETECTION = (
