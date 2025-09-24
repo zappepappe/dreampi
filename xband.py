@@ -75,7 +75,7 @@ def xbandInit():
                 "https://raw.githubusercontent.com/astoeckel/femtosip/8d8a3a2ba7534b4b805bb02dad826dc15ec8803b/femtosip.py"
             )
             r.raise_for_status()
-            (femtoSipPath / "femtosip.py").write_bytes(r.content.decode('ascii','ignore').encode())
+            (femtoSipPath / "femtosip.py").write_bytes(r.content)
             logger.info('fetched femtosip')
             r = requests.get("https://github.com/astoeckel/femtosip/raw/master/LICENSE")
             r.raise_for_status()
