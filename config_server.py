@@ -1,9 +1,9 @@
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+from pathlib import Path
 import threading
 from urllib.parse import parse_qs
-from pathlib import Path
 
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from dcnow import CONFIGURATION_FILE, scan_mac_address
 
 
@@ -31,10 +31,10 @@ class DreamPiConfigurationService(BaseHTTPRequestHandler):
         if config_path.exists():
             enabled_state = json.loads(config_path.read_text())["enabled"]
 
-        self.wfile.write(json.dumps({
+        json.dump({
             "mac_address": scan_mac_address(),
             "is_enabled": enabled_state
-        }).encode())
+        }, self.wfile)
 
 
     def do_POST(self):
@@ -51,10 +51,10 @@ class DreamPiConfigurationService(BaseHTTPRequestHandler):
         config_path = Path(CONFIGURATION_FILE)
         config_path.write_text(json.dumps({"enabled": enabled_state}))
 
-        self.wfile.write(json.dumps({
+        json.dump({
             "mac_address": scan_mac_address(),
             "is_enabled": enabled_state
-        }).encode())
+        }, self.wfile)
 
 
 server = None
