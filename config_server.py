@@ -1,9 +1,9 @@
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import threading
 from urllib.parse import parse_qs
 import os
 
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from dcnow import CONFIGURATION_FILE, scan_mac_address
 
 
