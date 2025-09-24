@@ -42,7 +42,7 @@ def updater():
             r.raise_for_status()
             for line in r.iter_lines():
                 if b'_version' in line: 
-                    upstream_version = str(line.decode().split('version=')[1]).strip()
+                    upstream_version = line.decode().split('version=')[1].strip()
                     break
             local_script = Path("/home/pi/dreampi") / Path(script).name
             if not local_script.is_file():
