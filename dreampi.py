@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 #dreampi.py_version=202402202004
 import atexit
+from ipaddress import IPv4Address
 # from typing import List, Optional, Tuple
 import serial
 import socket
 import os
 import logging
 import logging.handlers
+from pathlib import Path
 import sys
 import time
 import subprocess
@@ -14,10 +16,8 @@ import sh
 import signal
 import re
 import config_server
-from ipaddress import IPv4Address
 import iptc
 import select
-from pathlib import Path
 import requests
 import shutil
 import stat
