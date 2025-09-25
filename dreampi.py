@@ -9,6 +9,8 @@ import os
 import logging
 import logging.handlers
 from pathlib import Path
+import shutil
+import stat
 import sys
 import time
 import subprocess
@@ -19,8 +21,6 @@ import config_server
 import iptc
 import select
 import requests
-import shutil
-import stat
 
 from dcnow import DreamcastNowService
 from port_forwarding import PortForwarding
