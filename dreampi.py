@@ -341,9 +341,9 @@ def find_next_unused_ip(start):
     test_ip = IPv4Address(start)
 
     while test_ip.packed[-1] > 0:
+        test_ip -= 1
         if not ip_exists(test_ip, interface):
             return test_ip
-        test_ip -= 1
 
     raise Exception("Unable to find a free IP on the network")
 
