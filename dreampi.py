@@ -357,14 +357,14 @@ def autoconfigure_ppp(device, speed):
        Returns the IP allocated to the Dreamcast
     """
 
-    gw_ip = subprocess.run(
+    gateway_ip = subprocess.run(
         "route -n | grep 'UG[ \t]' | awk '{print $2}'",
         shell=True,
         capture_output=True,
         text=True,
         check=True
     ).stdout.strip()
-    gateway_ip = IPv4Address(gw_ip)
+    gateway_ip = IPv4Address(gateway_ip)
     # Set last octet to 100, preserve network prefix
     start_ip = IPv4Address(int(gateway_ip) & 0xFFFFFF00 | 100)
 
